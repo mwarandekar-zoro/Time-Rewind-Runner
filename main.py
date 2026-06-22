@@ -28,9 +28,9 @@ GRAY = (100, 100, 100)
 
 # Difficulty levels
 class Difficulty(Enum):
-    EASY = {"ghost_delay": 500, "obstacle_freq": 0.01, "speed_cap": 8, "spawn_delay": 1500}
-    NORMAL = {"ghost_delay": 300, "obstacle_freq": 0.02, "speed_cap": 12, "spawn_delay": 1000}
-    HARD = {"ghost_delay": 150, "obstacle_freq": 0.035, "speed_cap": 15, "spawn_delay": 700}
+    EASY = {"ghost_delay": 240, "obstacle_freq": 0.01, "speed_cap": 8, "spawn_delay": 1500}
+    NORMAL = {"ghost_delay": 180, "obstacle_freq": 0.02, "speed_cap": 12, "spawn_delay": 1000}
+    HARD = {"ghost_delay": 120, "obstacle_freq": 0.035, "speed_cap": 15, "spawn_delay": 700}
 
 # Skins
 class Skin(Enum):
@@ -90,6 +90,7 @@ ghost_y = None
 ghost_active = False
 show_ghost = False
 ghost_path = []
+ghost_index = 0
 ghost_safe_frames = 0
 
 
@@ -221,24 +222,33 @@ def draw_squirtle(surface, x, y, size, angle=0):
 
 
 def draw_ghost(surface, x, y, size):
-    body_color = RED
+    if x is None or y is None:
+        return
+
+    body_color = CYAN
+    outline_color = WHITE
     black = (0, 0, 0)
     head_r = size // 2
     center_x = x + head_r
     center_y = y + head_r
 
     pygame.draw.circle(surface, body_color, (center_x, center_y), head_r)
+    pygame.draw.circle(surface, outline_color, (center_x, center_y), head_r, 3)
     pygame.draw.rect(surface, body_color, (x, y + head_r, size, head_r))
+    pygame.draw.rect(surface, outline_color, (x, y + head_r, size, head_r), 3)
 
     scallop_r = size // 6
     for i in range(4):
         cx = x + int((i + 0.5) * (size / 4))
         cy = y + size
         pygame.draw.circle(surface, body_color, (cx, cy), scallop_r)
+        pygame.draw.circle(surface, outline_color, (cx, cy), scallop_r, 2)
 
     eye_r = max(2, size // 12)
     pygame.draw.circle(surface, black, (x + int(size * 0.35), y + int(size * 0.4)), eye_r)
     pygame.draw.circle(surface, black, (x + int(size * 0.65), y + int(size * 0.4)), eye_r)
+    pygame.draw.circle(surface, WHITE, (x + int(size * 0.35), y + int(size * 0.4)), eye_r // 2)
+    pygame.draw.circle(surface, WHITE, (x + int(size * 0.65), y + int(size * 0.4)), eye_r // 2)
 
 
 def draw_player(surface, x, y, size, angle):
@@ -341,16 +351,23 @@ while running:
         pygame.display.flip()
         continue
 
+    # Apply active power-up movement modifiers
+    current_speed = player_speed
+    if active_power_up == PowerUpType.SPEED_BOOST:
+        current_speed = min(player_speed * 1.5, max_player_speed)
+    elif active_power_up == PowerUpType.SLOW_MO:
+        current_speed = player_speed * 0.5
+
     # Key presses
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
-        player_x -= player_speed
+        player_x -= current_speed
     if keys[pygame.K_RIGHT]:
-        player_x += player_speed
+        player_x += current_speed
     if keys[pygame.K_UP]:
-        player_y -= player_speed
+        player_y -= current_speed
     if keys[pygame.K_DOWN]:
-        player_y += player_speed
+        player_y += current_speed
 
     # Animation
     player_angle += 5
@@ -422,36 +439,35 @@ while running:
         spawn_power_up()
         power_up_spawn_timer = 0
 
-    # Apply power-up effects
-    current_speed = player_speed
-    if active_power_up == PowerUpType.SPEED_BOOST:
-        current_speed = min(player_speed * 1.5, max_player_speed)
-    elif active_power_up == PowerUpType.SLOW_MO:
-        current_speed = player_speed * 0.5
-
     # Ghost spawn and collision
     ghost_spawn_timer += 1
-    show_ghost = ghost_active
     if not ghost_active:
-        if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
-            ghost_path = movement_history.copy()
-            ghost_active = True
-            show_ghost = True
-            ghost_safe_frames = 120
-            ghost_spawn_timer = 0
+        if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > diff_settings["ghost_delay"] + 120:
+            candidate_path = movement_history[:-120]
+            if candidate_path:
+                ghost_path = candidate_path.copy()
+                ghost_index = 0
+                ghost_x, ghost_y = ghost_path[ghost_index]
+                ghost_index += 1
+                ghost_active = True
+                show_ghost = True
+                ghost_safe_frames = 60
+                ghost_spawn_timer = 0
     else:
-        if ghost_path:
-            ghost_x, ghost_y = ghost_path.pop(0)
+        if ghost_index < len(ghost_path):
+            ghost_x, ghost_y = ghost_path[ghost_index]
+            ghost_index += 1
         else:
             ghost_active = False
             show_ghost = False
 
+        if ghost_safe_frames > 0:
+            ghost_safe_frames -= 1
+
         if ghost_x is not None and ghost_y is not None:
             ghost_rect = pygame.Rect(ghost_x, ghost_y, player_size, player_size)
             if player_rect.colliderect(ghost_rect):
-                if ghost_safe_frames > 0:
-                    ghost_safe_frames -= 1
-                else:
+                if ghost_safe_frames == 0:
                     if active_power_up == PowerUpType.SHIELD:
                         active_power_up = None
                         power_up_timer = 0
