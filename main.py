@@ -90,6 +90,7 @@ ghost_y = None
 ghost_active = False
 show_ghost = False
 ghost_path = []
+ghost_safe_frames = 0
 
 
 def load_high_scores():
@@ -430,26 +431,35 @@ while running:
 
     # Ghost spawn and collision
     ghost_spawn_timer += 1
+    show_ghost = ghost_active
     if not ghost_active:
         if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
             ghost_path = movement_history.copy()
             ghost_active = True
             show_ghost = True
+            ghost_safe_frames = 120
             ghost_spawn_timer = 0
     else:
         if ghost_path:
             ghost_x, ghost_y = ghost_path.pop(0)
+        else:
+            ghost_active = False
+            show_ghost = False
 
-        ghost_rect = pygame.Rect(ghost_x, ghost_y, player_size, player_size)
-        if player_rect.colliderect(ghost_rect):
-            if active_power_up == PowerUpType.SHIELD:
-                active_power_up = None
-                power_up_timer = 0
-            else:
-                lives -= 1
-                if lives <= 0:
-                    game_over = True
-                    running = False
+        if ghost_x is not None and ghost_y is not None:
+            ghost_rect = pygame.Rect(ghost_x, ghost_y, player_size, player_size)
+            if player_rect.colliderect(ghost_rect):
+                if ghost_safe_frames > 0:
+                    ghost_safe_frames -= 1
+                else:
+                    if active_power_up == PowerUpType.SHIELD:
+                        active_power_up = None
+                        power_up_timer = 0
+                    else:
+                        lives -= 1
+                        if lives <= 0:
+                            game_over = True
+                            running = False
     # Draw
     screen.fill(BLACK)
 
