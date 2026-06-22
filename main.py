@@ -87,6 +87,7 @@ speed_thresholds = {5, 10, 15, 20}
 speed_increased_at = set()
 ghost_x = None
 ghost_y = None
+ghost_active = False
 show_ghost = False
 
 
@@ -428,11 +429,14 @@ while running:
 
     # Ghost spawn and collision
     ghost_spawn_timer += 1
-    show_ghost = False
-    if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
-        global ghost_x, ghost_y
-        ghost_x, ghost_y = movement_history[0]
-        show_ghost = True
+    if not ghost_active:
+        if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
+            ghost_x, ghost_y = movement_history[0]
+            ghost_active = True
+            ghost_spawn_timer = 0
+    else:
+        if len(movement_history) > 0:
+            ghost_x, ghost_y = movement_history.pop(0)
 
         ghost_rect = pygame.Rect(ghost_x, ghost_y, player_size, player_size)
         if player_rect.colliderect(ghost_rect):
@@ -444,10 +448,6 @@ while running:
                 if lives <= 0:
                     game_over = True
                     running = False
-
-        movement_history.pop(0)
-        ghost_spawn_timer = 0
-
     # Draw
     screen.fill(BLACK)
 
