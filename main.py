@@ -430,6 +430,7 @@ while running:
     ghost_spawn_timer += 1
     show_ghost = False
     if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
+        global ghost_x, ghost_y
         ghost_x, ghost_y = movement_history[0]
         show_ghost = True
 
