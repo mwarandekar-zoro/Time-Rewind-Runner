@@ -89,6 +89,7 @@ ghost_x = None
 ghost_y = None
 ghost_active = False
 show_ghost = False
+ghost_path = []
 
 
 def load_high_scores():
@@ -431,12 +432,13 @@ while running:
     ghost_spawn_timer += 1
     if not ghost_active:
         if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
-            ghost_x, ghost_y = movement_history[0]
+            ghost_path = movement_history.copy()
             ghost_active = True
+            show_ghost = True
             ghost_spawn_timer = 0
     else:
-        if len(movement_history) > 0:
-            ghost_x, ghost_y = movement_history.pop(0)
+        if ghost_path:
+            ghost_x, ghost_y = ghost_path.pop(0)
 
         ghost_rect = pygame.Rect(ghost_x, ghost_y, player_size, player_size)
         if player_rect.colliderect(ghost_rect):
