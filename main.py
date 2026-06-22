@@ -85,6 +85,9 @@ game_over = False
 game_paused = False
 speed_thresholds = {5, 10, 15, 20}
 speed_increased_at = set()
+ghost_x = None
+ghost_y = None
+show_ghost = False
 
 
 def load_high_scores():
@@ -425,9 +428,10 @@ while running:
 
     # Ghost spawn and collision
     ghost_spawn_timer += 1
+    show_ghost = False
     if ghost_spawn_timer > diff_settings["ghost_delay"] and len(movement_history) > 300:
         ghost_x, ghost_y = movement_history[0]
-        draw_ghost(screen, ghost_x, ghost_y, player_size)
+        show_ghost = True
 
         ghost_rect = pygame.Rect(ghost_x, ghost_y, player_size, player_size)
         if player_rect.colliderect(ghost_rect):
@@ -459,6 +463,10 @@ while running:
     for obs in obstacles:
         pygame.draw.rect(screen, GRAY, obs)
         pygame.draw.rect(screen, WHITE, obs, 2)
+
+    # Draw ghost
+    if show_ghost:
+        draw_ghost(screen, ghost_x, ghost_y, player_size)
 
     # Draw power-ups
     for pu in power_ups:
