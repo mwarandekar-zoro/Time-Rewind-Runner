@@ -1,6 +1,15 @@
 # Time Rewind Runner
 
-A small Pygame project where you play as a Pikachu-like box and avoid a red ghost that replays your past movements.
+A Pygame arcade runner where you control a character, collect coins, avoid obstacles, and escape your own replay ghost.
+
+## Features
+
+- Multiple difficulty levels: Easy, Normal, Hard
+- Skin selection: Pikachu, Charmander, Squirtle
+- Red ghost replay that follows your past movements
+- Obstacles, power-ups, and shield / slow-mo / speed boost effects
+- High score persistence in `high_scores.json`
+- Animated coin, pause support, and gameplay UI
 
 ## Requirements
 
@@ -10,7 +19,7 @@ A small Pygame project where you play as a Pikachu-like box and avoid a red ghos
 ## Install
 
 ```bash
-python -m pip install -r requirements.txt
+py -m pip install -r requirements.txt
 ```
 
 ## Run
@@ -19,23 +28,17 @@ python -m pip install -r requirements.txt
 py main.py
 ```
 
-## Put on GitHub
+## GitHub
 
-1. Initialize a local git repository and make the first commit:
+This project is already configured with a remote repository.
 
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-```
-
-2a. (Recommended) Use GitHub CLI to create and push the repo (replace `USERNAME/REPO`):
+To check the remote, use:
 
 ```bash
-gh repo create USERNAME/REPO --public --source=. --remote=origin --push
+git remote -v
 ```
 
-2b. Or create a repo on GitHub website and then add the remote and push:
+If you need to push to a new GitHub repo instead, use:
 
 ```bash
 git remote add origin https://github.com/USERNAME/REPO.git
@@ -43,7 +46,7 @@ git branch -M main
 git push -u origin main
 ```
 
-Note: For HTTPS pushes you may need to use a Personal Access Token (PAT) or set up SSH keys.
+Note: You may need a Personal Access Token (PAT) or SSH key for HTTPS pushes.
 
 ## License
 
